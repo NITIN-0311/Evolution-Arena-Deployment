@@ -12,21 +12,47 @@ function read()
     //console.log("read function called");
     return new Promise((resolve)=>
         {
-        input=controlPanel.question("Choose your move : ",(choice)=>{
+        input=controlPanel.question("",(input)=>{
         //controlPanel.close();
-        return resolve(choice);
+        return resolve(input);
     }
     );
         
     })
 }
 
-let player={
-    hp:100
+let playersData={
+    players:new Map(),
+    playersHp:[],
+    count:0,
+    addPlayer(playerID,playerName)
+    {
+        this.players.set(playerID,playerName);
+    },
+    listPlayers()
+    {
+        /*
+        console.log(this.players);
+        this.players.forEach( (playerID,index)=>
+        {
+            console.log(`Player ID - ${playerID} Player Name : ${this.players[playerID]}`)
+        }
+        );*/
+
+        for([tempPlayerID,tempPlayerName] of this.players){
+            console.log(`Player ID - ${tempPlayerID} Player Name : ${tempPlayerName}`);
+        }
+    }
+
 };
 
 let bot={
-    hp:100
+    hp:undefined,
+
+    move()
+    {
+        moveNumber=Math.random%4;
+    }
 }
 
 let moves={
@@ -60,17 +86,35 @@ async function runGame()
     while(true)
     {
         moves.menu();
+
         let moveNumber = await read();
         move=moves[moveNumber];
-        
+
         console.log("move", move);
+
+        bot.move();
         
     }
 };
 
-function startGame()
+async function choosePlayers()
+{
+    console.log("Choose player count");
+    playersData.count=await read();
+
+    for(let i=0;i<playersData.count;i++)
+    {
+        playerID=i+1;
+        console.log(`Enter player ${playerID} name : `);
+        let playerName=await read();
+        playersData.addPlayer(playerID,playerName);
+    }
+    playersData.listPlayers();
+}
+async function startGame()
 {
     console.log("Game has started");
+    await choosePlayers();
     runGame();
 }
 
