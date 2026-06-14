@@ -1,5 +1,13 @@
 const readline = require('node:readline');
 
+
+const RESET = "\x1b[0m";
+const RED = "\x1b[31m";
+const GREEN = "\x1b[32m";
+const YELLOW = "\x1b[33m";
+const BLUE = "\x1b[34m";
+const CYAN = "\x1b[36m";
+
 const controlPanel= readline.createInterface(
     {
         input:process.stdin,
@@ -20,6 +28,8 @@ function read()
     });
 }
 
+let gameFlag=true;
+
 let moves={
 
     1:"attack",
@@ -28,7 +38,7 @@ let moves={
 
     attack(playerID)
     {
-        console.log("Player chose attack");
+        console.log(RED+"Player chose attack"+RESET);
             
         for(let i=0;i<=playersData.count;i++)
         {
@@ -36,8 +46,8 @@ let moves={
             {
                 if(playersData.defenseFlag[i])
                 {
-                    console.log("Shield Broken for  ",
-                        playerID," - ",
+                    console.log("Shield Broken for [",
+                        playerID,"]",
                         playersData.players.get(i));
 
                     playersData.defenseFlag[i]=false;
@@ -52,7 +62,7 @@ let moves={
         }
     },
     heal(playerID){
-        console.log(`Player ${playerID} chose to Heal`);
+        console.log(GREEN+`Player ${playerID} chose to Heal`+RESET);
 
         currentHp=(playersData.playersHp).get(playerID);
         playersData.playersHp.set(playerID,currentHp+10);
@@ -72,7 +82,7 @@ let moves={
     shield(playerID)
     {
         playersData.defenseFlag[playerID]=true;
-        console.log(`${playersData.players.get(playerID)} is protected with shield`);
+        console.log(CYAN+`${playersData.players.get(playerID)} is protected with shield`+RESET);
     },
 
     menu()
@@ -119,7 +129,7 @@ let playersData={
     {
         this.players.set(playerID,playerName);
         this.playersHp.set(playerID,100);
-        this.isAlive[playerID]=true;
+        this.isAlive.set(playerID,true);
     },
     listPlayers()
     {
@@ -152,6 +162,8 @@ let playersData={
 
         for([tempPlayerID,tempPlayerName] of this.players)
         {
+            if(!playersData.isAlive.get(tempPlayerID));
+                continue;
             console.log(`\nPlayer ID :${tempPlayerID}`);
             console.log(`Player Name ${tempPlayerName}`);
             console.log(`HP Status : ${this.playersHp.get(tempPlayerID)}`);
@@ -165,10 +177,30 @@ let playersData={
             if(this.playersHp.get(playerId)<=0)
             {
                 this.isAlive.set(playerId,false);
-                console.log(`Player ${playersData.playerName[playerId]} is OUT`);
+                console.log(`Player ${playersData.players.get(playerId)} is Elimintaed`);
+                this.isOver();
             }
         }
     },
+    isOver()
+    {
+        let NotEliminated=[];
+        for(var i=0;i<=playersData.count;i++)
+        {
+            aliveFlag=this.isAlive.get(i);
+            if(aliveFlag)
+            {
+                NotEliminated.push(i);
+            }            
+        }
+        if(NotEliminated.length==1)
+        {
+            
+            let winnerID=NotEliminated[0];
+            console.log(`Winner - ${playersData.players.get(winnerID)}`)
+            gameFlag=false;
+        }
+    }
 
 };
 
@@ -223,12 +255,16 @@ async function runGame()
     console.log("Game started ");
     bot.initaliseBot();
     
-    while(true)
+    while(gameFlag)
     {
         for(let i=0;i<=playersData.count;i++)
         {
+            if(!playersData.isAlive.get(i))
+            {
+                continue;
+            }                
             console.log("==================================");
-            console.log(`\nPlayer -${i} has to make a move`);
+            console.log(RED+`\nPlayer - ${i} has to make a move`+RESET);
             moves.menu();
             //if (playersData.isAlive[i])
               //  continue
@@ -245,13 +281,16 @@ async function runGame()
                 //console.log("Chosen move : ", move);
                 moves.makeMove(i,Number(moveNumber));
             }
-            console.log("\nImpact on other Players");
+            console.log(YELLOW+"\nImpact on other Players");
             playersData.hpStatus();
             playersData.checkAlive();
-            
-            
+            console.log(RESET);      
         }
     }
+    console.log("Press any char to close the game");
+    read();
+    controlPanel.close();
+
 };
 
 async function choosePlayers()
@@ -269,7 +308,7 @@ async function choosePlayers()
 }
 async function startGame()
 {
-    console.log("Game has started");
+    console.log(RESET+"Game has started");
     await choosePlayers();
     runGame();
 }
