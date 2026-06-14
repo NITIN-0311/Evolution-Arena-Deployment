@@ -33,10 +33,20 @@ let moves={
             console.log("move", move);
             if(playersHp[i]!=playerID)
             {
-                playersData.playersHp[i] -=10;
-            }
+                if(playersData.defenseFlag[i])
+                {
+                    console.log("Shield Broken : ",
+                        playerID,
+                        playersData.players[i]);
+
+                    playersData.defenseFlag[i]=false;
+                }
+                else
+                    playersData.playersHp[i] -=10;
+            }            
         }
     },
+
     heal(playerID){
         playersData.playersHp[playerID]+=10;
 
@@ -51,14 +61,42 @@ let moves={
                    );
 
     },
-    shield(){
-        console.log("Player is blocking the attack");
+
+    shield(playerID)
+    {
+        playersData.defenseFlag[playerID]=true;
+        console.log(`${this.playerName[playerID]} is protected with shield`);
     },
+
     menu()
     {
         console.log("1.Attack");
         console.log("2.Heal");
         console.log("3.Defense");
+    },
+
+    makeMove(playerID,moveNumber)
+    {
+        switch (moveNumber){
+            case 1:
+                {
+                    this.attack(playerID);
+                    break;
+                }
+            case 2:
+                {
+                    this.heal(playerID);
+                    break;
+                }
+            case 3:
+                {
+                    this.shield(playerID);
+                    break;
+                }
+            default:
+                console.log("Invalid move");
+        }
+
     }
 }
 
@@ -66,11 +104,14 @@ let playersData={
     players:new Map(),
     playersHp:new Map(),
     count:0,
+    defenseFlag:[],
+    isAlive:new Map(),
+    
     addPlayer(playerID,playerName)
     {
         this.players.set(playerID,playerName);
         this.playersHp.set(playerID,100);
-
+        this.isAlive[playerID]=true;
     },
     listPlayers()
     {
@@ -111,9 +152,22 @@ let playersData={
             console.log(`
                 Player ID :${tempPlayerID} 
                 Player Name ${tempPlayerName}
-                Player HP ${this.playersHp[tempPlayerID]}`);
+                HP Status : ${this.playersHp[tempPlayerID]}`);
         }
-    }
+    },
+
+    checkAlive()
+    {
+        for(let playerId=0;playerId<playersData.count;playerId++)
+        {
+            if(this.playersHp[playerId]<=0)
+            {
+                this.isAlive[playerId]=false;
+                console.log(`Player ${playersData.playerName[playerId]} is OUT`);
+            }
+        }
+    },
+
 };
 
 let bot={
@@ -141,8 +195,6 @@ let bot={
     
 }
 
-
-
 async function runGame()
 {
     let choice=-1;
@@ -151,7 +203,11 @@ async function runGame()
     {
         for(let i=0;i<playersData.count;i++)
         {
+     
             moves.menu();
+            //if (playersData.isAlive[i])
+              //  continue
+
             if(i==0)
             {
                 bot.move();
@@ -159,10 +215,13 @@ async function runGame()
             else
             {
                 let moveNumber = await read();
-                move=moves[moveNumber];
-                console.log("Chosen move : ", move);
+                //move=moves[moveNumber];
+                //console.log("Chosen move : ", move);
+                makeMove(move,i);
             }
             playersData.hpStatus();
+            playersData.checkAlive();
+            
         }
     }
 };
@@ -171,13 +230,13 @@ async function choosePlayers()
 {
     console.log("Choose player count : ");
     playersData.count=await read();
-
+    
     for(let i=0;i<playersData.count;i++)
     {
         playerID=i+1;
         console.log(`Enter player ${playerID} name : `);
         let playerName=await read();
-        playersData.addPlayer(playerID,playerName);
+        await playersData.addPlayer(playerID,playerName);
     }
     playersData.listPlayers();
 }
@@ -211,4 +270,5 @@ function read()
 }
 5.Wrote moves as different functions
 6.Loops issues while map elements iterations
+7.Missed to track the games modes
 */
