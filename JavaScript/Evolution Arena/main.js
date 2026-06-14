@@ -28,51 +28,59 @@ let moves={
 
     attack(playerID)
     {
-        for(let i=0;i<playersData.count;i++)
+        console.log("Player chose attack");
+            
+        for(let i=0;i<=playersData.count;i++)
         {
-            console.log("move", move);
-            if(playersHp[i]!=playerID)
+            if(i!=playerID)
             {
                 if(playersData.defenseFlag[i])
                 {
-                    console.log("Shield Broken : ",
-                        playerID,
-                        playersData.players[i]);
+                    console.log("Shield Broken for  ",
+                        playerID," - ",
+                        playersData.players.get(i));
 
                     playersData.defenseFlag[i]=false;
                 }
                 else
-                    playersData.playersHp[i] -=10;
+                {
+                    currentHp=playersData.playersHp.get(i);
+                    playersData.playersHp.set(i,currentHp-25);
+                }
+                    
             }            
         }
     },
-
     heal(playerID){
-        playersData.playersHp[playerID]+=10;
+        console.log(`Player ${playerID} chose to Heal`);
 
-        if(playersData.playersHp[playerID]>100)
+        currentHp=(playersData.playersHp).get(playerID);
+        playersData.playersHp.set(playerID,currentHp+10);
+
+        if(playersData.playersHp.get(playerID)>100)
         {
-            playersData.playersHp[playerID]=100;
+            playersData.playersHp.set(playerID,100);
         }
         
         console.log("Player ID : ",playerID,
-                    "Player Name : ",playersData.playerName[playerID],
-                    "Player HP : ",playersData.playersHp[playerID]
-                   );
+                    "Player Name : ",playersData.players.get(playerID),
+                    "Player HP : ",playersData.playersHp.get(playerID)
+                    );
 
     },
 
     shield(playerID)
     {
         playersData.defenseFlag[playerID]=true;
-        console.log(`${this.playerName[playerID]} is protected with shield`);
+        console.log(`${playersData.players.get(playerID)} is protected with shield`);
     },
 
     menu()
     {
-        console.log("1.Attack");
+        console.log("\n1.Attack");
         console.log("2.Heal");
         console.log("3.Defense");
+        console.log("Choose your move");
     },
 
     makeMove(playerID,moveNumber)
@@ -128,11 +136,6 @@ let playersData={
         }
     },
 
-    setupBot()
-    {
-
-    },
-
     hpStatus()
     {
         /*
@@ -149,20 +152,19 @@ let playersData={
 
         for([tempPlayerID,tempPlayerName] of this.players)
         {
-            console.log(`
-                Player ID :${tempPlayerID} 
-                Player Name ${tempPlayerName}
-                HP Status : ${this.playersHp[tempPlayerID]}`);
+            console.log(`\nPlayer ID :${tempPlayerID}`);
+            console.log(`Player Name ${tempPlayerName}`);
+            console.log(`HP Status : ${this.playersHp.get(tempPlayerID)}`);
         }
     },
 
     checkAlive()
     {
-        for(let playerId=0;playerId<playersData.count;playerId++)
+        for(let playerId=0;playerId<=playersData.count;playerId++)
         {
-            if(this.playersHp[playerId]<=0)
+            if(this.playersHp.get(playerId)<=0)
             {
-                this.isAlive[playerId]=false;
+                this.isAlive.set(playerId,false);
                 console.log(`Player ${playersData.playerName[playerId]} is OUT`);
             }
         }
@@ -171,11 +173,20 @@ let playersData={
 };
 
 let bot={
-    hp:undefined,
+    hp:100,
 
     move()
     {
-        moveNumber=Math.random%4;
+        moveNumber=Math.floor(Math.random()*3)+1;
+
+        if(moveNumber==2 && playersData.playersHp.get(0)==100)
+        {
+            moveNumber=1;
+        }
+        else if(moveNumber==3 && playersData.defenseFlag[0]==true)
+        {
+            moveNumber=1;
+        }
 
         switch(moveNumber)
         {
@@ -189,27 +200,42 @@ let bot={
                     moves.heal(0);
                     break;
                 }
+            case 3:
+                {
+                    moves.shield(0);
+                    break;
+                }
+            default:
+                console.log("Bot chose a invalid move");
         }
 
     },
+    initaliseBot()
+    {
+        playersData.addPlayer(0,"Bot");
+    }
     
 }
 
 async function runGame()
 {
     let choice=-1;
+    console.log("Game started ");
+    bot.initaliseBot();
     
     while(true)
     {
-        for(let i=0;i<playersData.count;i++)
+        for(let i=0;i<=playersData.count;i++)
         {
-     
+            console.log("==================================");
+            console.log(`\nPlayer -${i} has to make a move`);
             moves.menu();
             //if (playersData.isAlive[i])
               //  continue
 
             if(i==0)
             {
+                console.log("Bot made a move");
                 bot.move();
             }                
             else
@@ -217,10 +243,12 @@ async function runGame()
                 let moveNumber = await read();
                 //move=moves[moveNumber];
                 //console.log("Chosen move : ", move);
-                makeMove(move,i);
+                moves.makeMove(i,Number(moveNumber));
             }
+            console.log("\nImpact on other Players");
             playersData.hpStatus();
             playersData.checkAlive();
+            
             
         }
     }
@@ -231,9 +259,8 @@ async function choosePlayers()
     console.log("Choose player count : ");
     playersData.count=await read();
     
-    for(let i=0;i<playersData.count;i++)
+    for(let playerID=1;playerID<=playersData.count;playerID++)
     {
-        playerID=i+1;
         console.log(`Enter player ${playerID} name : `);
         let playerName=await read();
         await playersData.addPlayer(playerID,playerName);
@@ -271,4 +298,6 @@ function read()
 5.Wrote moves as different functions
 6.Loops issues while map elements iterations
 7.Missed to track the games modes
+8.Everything inside the backtick is printed literally
+the same
 */
