@@ -16,18 +16,61 @@ function read()
         //controlPanel.close();
         return resolve(input);
     }
-    );
+    );        
+    });
+}
+
+let moves={
+
+    1:"attack",
+    2:"heal",
+    3:"defense",
+
+    attack(playerID)
+    {
+        for(let i=0;i<playersData.count;i++)
+        {
+            console.log("move", move);
+            if(playersHp[i]!=playerID)
+            {
+                playersData.playersHp[i] -=10;
+            }
+        }
+    },
+    heal(playerID){
+        playersData.playersHp[playerID]+=10;
+
+        if(playersData.playersHp[playerID]>100)
+        {
+            playersData.playersHp[playerID]=100;
+        }
         
-    })
+        console.log("Player ID : ",playerID,
+                    "Player Name : ",playersData.playerName[playerID],
+                    "Player HP : ",playersData.playersHp[playerID]
+                   );
+
+    },
+    shield(){
+        console.log("Player is blocking the attack");
+    },
+    menu()
+    {
+        console.log("1.Attack");
+        console.log("2.Heal");
+        console.log("3.Defense");
+    }
 }
 
 let playersData={
     players:new Map(),
-    playersHp:[],
+    playersHp:new Map(),
     count:0,
     addPlayer(playerID,playerName)
     {
         this.players.set(playerID,playerName);
+        this.playersHp.set(playerID,100);
+
     },
     listPlayers()
     {
@@ -42,8 +85,35 @@ let playersData={
         for([tempPlayerID,tempPlayerName] of this.players){
             console.log(`Player ID - ${tempPlayerID} Player Name : ${tempPlayerName}`);
         }
-    }
+    },
 
+    setupBot()
+    {
+
+    },
+
+    hpStatus()
+    {
+        /*
+        Map Elements cannot be accessed using index
+        for(let i=0;i<playersData;i++)
+        {
+            if(playersData.playersHp!=0)
+            {
+                console.log(`Player ID :${playersData.players} Player Name ${} Player HP`);
+            
+            }
+            
+        }*/
+
+        for([tempPlayerID,tempPlayerName] of this.players)
+        {
+            console.log(`
+                Player ID :${tempPlayerID} 
+                Player Name ${tempPlayerName}
+                Player HP ${this.playersHp[tempPlayerID]}`);
+        }
+    }
 };
 
 let bot={
@@ -52,30 +122,23 @@ let bot={
     move()
     {
         moveNumber=Math.random%4;
-    }
-}
 
-let moves={
+        switch(moveNumber)
+        {
+            case 1:
+                {
+                    moves.attack(0);
+                    break
+                }
+            case 2:
+                {
+                    moves.heal(0);
+                    break;
+                }
+        }
 
-    1:"attack",
-    2:"heal",
-    3:"defense",
-
-    attack(){
-        console.log("Player Attacked");
     },
-    heal(){
-        console.log("Player healed");
-    },
-    shield(){
-        console.log("Player is blocking the attack");
-    },
-    menu()
-    {
-        console.log("1.Attack");
-        console.log("2.Heal");
-        console.log("3.Defense");
-    }
+    
 }
 
 
@@ -83,23 +146,30 @@ let moves={
 async function runGame()
 {
     let choice=-1;
+    
     while(true)
     {
-        moves.menu();
-
-        let moveNumber = await read();
-        move=moves[moveNumber];
-
-        console.log("move", move);
-
-        bot.move();
-        
+        for(let i=0;i<playersData.count;i++)
+        {
+            moves.menu();
+            if(i==0)
+            {
+                bot.move();
+            }                
+            else
+            {
+                let moveNumber = await read();
+                move=moves[moveNumber];
+                console.log("Chosen move : ", move);
+            }
+            playersData.hpStatus();
+        }
     }
 };
 
 async function choosePlayers()
 {
-    console.log("Choose player count");
+    console.log("Choose player count : ");
     playersData.count=await read();
 
     for(let i=0;i<playersData.count;i++)
@@ -139,4 +209,6 @@ function read()
         return resolve();
     })
 }
+5.Wrote moves as different functions
+6.Loops issues while map elements iterations
 */
