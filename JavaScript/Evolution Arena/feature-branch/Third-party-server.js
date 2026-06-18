@@ -1,5 +1,6 @@
 const http=require("http");
 const {Pool}=require("pg");
+const { stringify } = require("querystring");
 
 const connection = new Pool(
 {
@@ -43,7 +44,7 @@ server.listen(3000,
 */
 
 
-const versions_service = http.createServer((req,res)=>
+const versions_service = http.createServer( async (req,res)=>
     {
         /*function requestHandlers(requestMethod,requestUrl,res)
         {
@@ -57,35 +58,55 @@ const versions_service = http.createServer((req,res)=>
         */
         if(req.method=="GET" && req.url==="/versions")
         {
+            try{
+            const result = await connection.query("select version_name,version_update_descriptions, released_at from versions");
+
             res.writeHead(200, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({version:"1.1"}));
+            
+            return res.end(JSON.stringify(result.rows));
+            }
+            catch(error)
+            {
+                console.log("Query failed",error);
+                return res.end(stringify({message:"Internal server problemmm"}))
+            }
+            //return res.end(JSON.stringify({version:"1.1"}));
         }   
         res.statusCode=404;
-        res.end({message:"requested path not found"});
+        res.end(JSON.stringify({message:"requested path not found"}));
         //requestHandlers(req.method,req.url,res);
     }
     ).listen(4001);
 
-const announcement_service = http.createServer((req,res)=>
+const announcement_service = http.createServer(async (req,res)=>
     {
         /*
         function requestHandlers(requestMethod,requestUrl,res)
         {
-            if(requestMethod=="GET" && requestUrl==="/announcements")
-            {
-               return res.end(JSON.stringify(
-                ["Server maintenance at 2 AM","New season starts tomorrow"]) 
-            );
-            }
-            res.statusCode=404;
-            res.end({message:"requested path not found"});
+        if(requestMethod=="GET" && requestUrl==="/announcements")
+        {
+        return res.end(JSON.stringify(
+            ["Server maintenance at 2 AM","New season starts tomorrow"]) 
+        );
+        }
+        res.statusCode=404;
+        res.end({message:"requested path not found"});
         }*/
         if(req.method=="GET" && req.url==="/announcements")
         {
+            try
+            {
+            const result= await connection.query("select announcement_content,announced_at from announcements order by announced_at desc");
             res.writeHead(200, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify(
-            ["Server maintenance at 2 AM","New season starts tomorrow"]) 
-        );
+            //return res.end(JSON.stringify(
+            //["Server maintenance at 2 AM","New season starts tomorrow"]) 
+            return res.end(JSON.stringify(result.rows));
+            }
+            catch(error)
+            {
+                console.log("Query failed",error);
+                return res.end(JSON.stringify({message:"Internal server problemmm"}));               
+            }
         }  
         //requestHandlers(req.method,req.url,res);    
         res.end("Closing the connection");  

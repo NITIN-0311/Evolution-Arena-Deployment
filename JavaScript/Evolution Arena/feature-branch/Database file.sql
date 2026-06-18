@@ -1,13 +1,6 @@
 
 select * from game_history;
 
-create table{
-gameId int,
-moveNumber int
-playerMadeMove Varchar(50)
-MoveUsed Varchar(15)
-}
-
 CREATE TABLE games
 (
     game_id SERIAL PRIMARY KEY,

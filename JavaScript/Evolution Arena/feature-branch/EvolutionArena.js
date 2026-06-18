@@ -335,14 +335,12 @@ function resetGame() {
         )
     },
 
-    async viewOldMatches()
-    {
-
+    async viewOldMatches(){
     },
 
     async viewLatestMatches(){
-
     },
+
     async viewSpecificGameLog(fetch_game_id){
         
       try{
@@ -478,6 +476,8 @@ function resetGame() {
     let ch=-1;
     do 
     {
+      console.log(YELLOW);
+  
       console.log("Enter 1 to view previous Game History");
       console.log("Enter 2 to delete specific game Histories");
       console.log("Enter 3 to view specific game Log");      
@@ -485,6 +485,7 @@ function resetGame() {
       console.log("Enter 5 to show available game versions");
       console.log("Press q to return for main menu");
       process.stdout.write("Enter your option : ");
+      console.log(RESET);
     
       ch=await read();
 
@@ -517,6 +518,11 @@ function resetGame() {
         case "5":
           {
             await server.getVersions();
+            break;
+          }
+        case "q":
+          {
+            console.log("Returning to main menu");
             break;
           }
         default:
