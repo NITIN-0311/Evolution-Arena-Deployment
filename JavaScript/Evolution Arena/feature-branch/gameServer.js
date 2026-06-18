@@ -5,8 +5,9 @@ const { Pool } = require("pg");
 const game_app = express();
 game_app.use(cors());
 game_app.use(express.json());
-const port = 3000;
+const port = process.env.PORT || 3000;
 
+/*
 const pool = new Pool({
   user: "postgres",
   host: "localhost",
@@ -14,9 +15,24 @@ const pool = new Pool({
   password: "root123",
   port: 5432,
 });
+*/
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
+const THIRD_PARTY_URL = process.env.THIRD_PARTY_URL;
+
+game_app.get("/", (req, res) => {
+    res.send("Evolution Arena API is running.");
+});
 
 game_app.get('/getGameHistory',async (request,response)=>
 {
+    
     try{
         const result= await pool.query("select game_id,winner_name,players,player_count,started_at,ended_at from games");
         return response.json(result.rows);
@@ -28,32 +44,54 @@ game_app.get('/getGameHistory',async (request,response)=>
 }
 );
 game_app.get('/getAnnouncements', async(request,response)=>{
+    if (!THIRD_PARTY_URL) {
+    return response.status(500).json({
+        message: "THIRD_PARTY_URL environment variable is not configured."
+    });
+}
     try
     {
-        const result=await fetch("http://localhost:4000/announcements");
+        const result=await fetch(`${THIRD_PARTY_URL}/announcements`);
+        if (!result.ok) {
+           throw new Error(`Third-party server responded with ${result.status}`);
+        }
         const data = await result.json();
         console.log("External data : ",data);
         return response.json(data);
     }
-    catch(error)
-    {
-        console.log("Error occured in connecting external server");
-    }
+    catch (error) {
+    console.error(error);
+    return response.status(500).json({
+        message: "Unable to contact third-party service"
+    });
+}
 });
 
 game_app.get('/getVersions', async(request,response)=>{
+
+    if (!THIRD_PARTY_URL) {
+        return response.status(500).json({
+        message: "THIRD_PARTY_URL environment variable is not configured."
+    });
+}
     try
     {
         console.log("trying to connect external api");
-        const result=await fetch("http://localhost:4000/versions");
+        const result=await fetch(`${THIRD_PARTY_URL}/versions`);
+
+        if (!result.ok) {
+            throw new Error(`Third-party server responded with ${result.status}`);
+        }   
         const data = await result.json();
         console.log("External data : ",data);
         return response.json(data);
     }
-    catch(error)
-    {
-        console.log("Error occured in connecting external server");
-    }
+    catch (error) {
+    console.error(error);
+    return response.status(500).json({
+        message: "Unable to contact third-party service"
+    });
+}
 });
 game_app.get('/getGameDetails',async (request,response)=>
 {
@@ -146,7 +184,7 @@ game_app.post('/logPlayerMoves',async(request,response)=>
     }
 });
 
-game_app.get('/viewSpecificGameLog',async(request,respone)=>
+game_app.get('/viewSpecificGameLog',async(request,response)=>
 {
     const requested_game_id=Number(request.query.gameId);  
     async function gamelog()
@@ -164,14 +202,14 @@ game_app.get('/viewSpecificGameLog',async(request,respone)=>
         const [gameLogData,movesLogData]=await Promise.all([gamelog(),moveslog()])
         console.log("Game Rows:", gameLogData.rows);
         console.log("Move Rows:", movesLogData.rows);
-        return respone.json({
+        return response.json({
             gameLogData:gameLogData,
             movesLogData:movesLogData
         });
     }
     catch(error)
     {
-        return respone.status(500).json({message:"Failed to read data from database"});
+        return response.status(500).json({message:"Failed to read data from database"});
     }
 });
 
