@@ -27,9 +27,27 @@ const pool = new Pool({
 const THIRD_PARTY_URL = process.env.THIRD_PARTY_URL;
 
 game_app.get("/", (req, res) => {
-    res.send("Evolution Arena API is running.");
-});
+    const apiInfo = {
+        project: "Evolution Arena API",
+        version: "1.0.0",
+        description: "Backend API for Evolution Arena game history, move logging, game result tracking, and third-party announcements.",
 
+        endpoints: {
+            gameHistory: "GET /getGameHistory",
+            gameDetails: "GET /getGameDetails",
+            announcements: "GET /getAnnouncements",
+            versions: "GET /getVersions",
+            logGameStart: "POST /logGameStart",
+            saveGameResult: "PATCH /saveGameResult",
+            logPlayerMoves: "POST /logPlayerMoves",
+            viewSpecificGameLog: "GET /viewSpecificGameLog",
+            deleteGameRecord: "DELETE /deleteGameRecord"
+        }
+    };
+
+    res.setHeader("Content-Type", "application/json");
+    res.send(JSON.stringify(apiInfo, null, 2));
+});
 game_app.get('/getGameHistory',async (request,response)=>
 {
     
