@@ -25,7 +25,7 @@ const pool = new Pool({
 });
 
 const THIRD_PARTY_URL = process.env.THIRD_PARTY_URL;
-
+game_app.set('json spaces', 2);
 game_app.get("/", (req, res) => {
     const apiInfo = {
         project: "Evolution Arena API",
