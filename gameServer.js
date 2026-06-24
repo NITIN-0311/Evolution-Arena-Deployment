@@ -27,7 +27,76 @@ const pool = new Pool({
 const THIRD_PARTY_URL = process.env.THIRD_PARTY_URL;
 
 game_app.get("/", (req, res) => {
-    res.send("Evolution Arena API is running.");
+    res.json({
+        project: "Evolution Arena API",
+        version: "1.0.0",
+        description: "Backend API for Evolution Arena game history, move logging, game result tracking, and third-party announcements.",
+
+        endpoints: {
+            gameHistory: {
+                method: "GET",
+                route: "/getGameHistory",
+                description: "Retrieve all completed game records"
+            },
+
+            gameDetails: {
+                method: "GET",
+                route: "/getGameDetails?latest=true",
+                description: "Retrieve latest 5 games"
+            },
+
+            announcements: {
+                method: "GET",
+                route: "/getAnnouncements",
+                description: "Fetch announcements from external service"
+            },
+
+            versions: {
+                method: "GET",
+                route: "/getVersions",
+                description: "Fetch game version information from external service"
+            },
+
+            logGameStart: {
+                method: "POST",
+                route: "/logGameStart",
+                description: "Create a new game session"
+            },
+
+            saveGameResult: {
+                method: "PATCH",
+                route: "/saveGameResult",
+                description: "Save winner and game completion time"
+            },
+
+            logPlayerMoves: {
+                method: "POST",
+                route: "/logPlayerMoves",
+                description: "Store individual player moves"
+            },
+
+            viewSpecificGameLog: {
+                method: "GET",
+                route: "/viewSpecificGameLog?gameId={id}",
+                description: "Retrieve game information and move history"
+            },
+
+            deleteGameRecord: {
+                method: "DELETE",
+                route: "/deleteGameRecord",
+                description: "Delete a game record by ID"
+            }
+        },
+
+        database: {
+            tables: [
+                "games",
+                "move_logs"
+            ]
+        },
+
+        author: "Nitin"
+    });
 });
 
 game_app.get('/getGameHistory',async (request,response)=>
